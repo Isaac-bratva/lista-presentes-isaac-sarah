@@ -1,4 +1,3 @@
-import Link from "next/link";
 import BotanicalSprig from "@/components/BotanicalSprig";
 import GiftListSection from "@/components/GiftListSection";
 import SiteFooter from "@/components/SiteFooter";
@@ -58,22 +57,7 @@ export default async function HomePage() {
           <p className="animate-rise delay-2 mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-ink-soft sm:text-xl">
             Ter você com a gente no dia 21 de março já é o presente que mais importa. Mas, se quiser nos presentear também, reunimos aqui algumas ideias — umas bem sérias, outras nem tanto.
           </p>
-
-          <div className="animate-rise delay-2 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="#lista"
-              className="rounded-full bg-ink px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-cream shadow-[0_18px_36px_-18px_rgba(35,77,132,0.9)] transition-all hover:-translate-y-0.5 hover:bg-serenity-deep"
-            >
-              Ver a lista de presentes
-            </Link>
-            <Link
-              href="/recados"
-              className="rounded-full border border-ink/25 bg-paper/60 px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-ink transition-all hover:-translate-y-0.5 hover:border-ink/50 hover:bg-paper"
-            >
-              Mural de recados
-            </Link>
-          </div>
-
+      
           <div className="animate-rise delay-3 mx-auto mt-14 max-w-xl border-y border-ink/15 px-5 py-5">
             <p className="font-display text-2xl italic text-ink">
               “O carinho de vocês é o nosso maior presente.”
