@@ -57,7 +57,7 @@ export default async function HomePage() {
           <p className="animate-rise delay-2 mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-ink-soft sm:text-xl">
             Ter você com a gente no dia 21 de março já é o presente que mais importa. Mas, se quiser nos presentear também, reunimos aqui algumas ideias — umas bem sérias, outras nem tanto.
           </p>
-      
+    
           <div className="animate-rise delay-3 mx-auto mt-14 max-w-xl border-y border-ink/15 px-5 py-5">
             <p className="font-display text-2xl italic text-ink">
               “O carinho de vocês é o nosso maior presente.”
