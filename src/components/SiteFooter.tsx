@@ -37,10 +37,6 @@ export default function SiteFooter({ settings }: { settings: Settings }) {
             Lista de presentes
           </Link>
           <span className="text-ink/20">·</span>
-          <Link href="/recados" className="transition-colors hover:text-ink">
-            Mural de recados
-          </Link>
-          <span className="text-ink/20">·</span>
           <Link href="/admin" className="transition-colors hover:text-ink">
             Área dos noivos
           </Link>

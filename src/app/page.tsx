@@ -158,7 +158,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* DETALHES DO CASAMENTO NO FINAL DO SITE */}
+      {/* DETALHES DO CASAMENTO NO FINAL DO SITE (conforme solicitado) */}
       <section id="informacoes" className="botanical-paper border-b border-ink/15 py-20">
         <div className="mx-auto max-w-5xl px-5 sm:px-8 text-center">
           <p className="text-[11px] uppercase tracking-[0.35em] text-serenity-deep font-semibold">

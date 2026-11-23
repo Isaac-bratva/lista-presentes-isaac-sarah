@@ -4,24 +4,11 @@ import { useMemo, useState } from "react";
 import type { GiftWithStatus } from "@/lib/data";
 import GiftCard from "./GiftCard";
 
-type CategoryFilter = "todos" | "memes" | "casal" | "festa" | "pix" | "casa" | "luademel";
-
-const CATEGORIES: { key: CategoryFilter; label: string; icon: string }[] = [
-  { key: "todos", label: "Todos", icon: "✨" },
-  { key: "memes", label: "Memes & Zueira", icon: "😂" },
-  { key: "casal", label: "Sobrevivência do Casal", icon: "💍" },
-  { key: "festa", label: "Festa & Buffet", icon: "🎉" },
-  { key: "pix", label: "Pix & Boletos", icon: "💸" },
-  { key: "casa", label: "Casa & Treta", icon: "🏠" },
-  { key: "luademel", label: "Lua de Mel", icon: "✈️" },
-];
-
 export default function GiftListSection({
   gifts,
 }: {
   gifts: GiftWithStatus[];
 }) {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [displayCount, setDisplayCount] = useState(24);
   const [sortBy, setSortBy] = useState<"default" | "price_asc" | "price_desc">("default");
@@ -29,23 +16,13 @@ export default function GiftListSection({
   const filteredGifts = useMemo(() => {
     let result = [...gifts];
 
-    // Categoria
-    if (selectedCategory !== "todos") {
-      result = result.filter((item) => {
-        const cat = (item as { category?: string }).category || "memes";
-        return cat === selectedCategory;
-      });
-    }
-
     // Busca textual
     if (searchQuery.trim().length > 0) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (item) =>
           item.title.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q) ||
-          ((item as { memeCaption?: string }).memeCaption || "").toLowerCase().includes(q) ||
-          ((item as { memeBadge?: string }).memeBadge || "").toLowerCase().includes(q),
+          item.description.toLowerCase().includes(q),
       );
     }
 
@@ -59,7 +36,7 @@ export default function GiftListSection({
     }
 
     return result;
-  }, [gifts, selectedCategory, searchQuery, sortBy]);
+  }, [gifts, searchQuery, sortBy]);
 
   const visibleGifts = useMemo(() => {
     return filteredGifts.slice(0, displayCount);
@@ -69,9 +46,8 @@ export default function GiftListSection({
 
   return (
     <div className="space-y-8">
-      {/* Barra de Filtros e Busca */}
+      {/* Barra de Busca e Ordenação */}
       <div className="flex flex-col gap-4 rounded-3xl border border-ink/15 bg-paper/90 p-5 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        {/* Campo de Busca */}
         <div className="relative flex-1">
           <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-ink-soft">
             🔍
@@ -97,7 +73,6 @@ export default function GiftListSection({
           ) : null}
         </div>
 
-        {/* Ordenador de Preço */}
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wider text-ink-soft font-semibold whitespace-nowrap">
             Ordenar:
@@ -114,31 +89,6 @@ export default function GiftListSection({
         </div>
       </div>
 
-      {/* Categorias / Tags de Navegação */}
-      <div className="flex flex-wrap items-center gap-2">
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat.key;
-          return (
-            <button
-              key={cat.key}
-              type="button"
-              onClick={() => {
-                setSelectedCategory(cat.key);
-                setDisplayCount(24);
-              }}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold tracking-wide uppercase transition-all cursor-pointer ${
-                isActive
-                  ? "bg-ink text-cream shadow-sm scale-105"
-                  : "border border-ink/15 bg-paper text-ink-soft hover:border-ink/40 hover:text-ink hover:bg-cream/50"
-              }`}
-            >
-              <span>{cat.icon}</span>
-              <span>{cat.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Contador de resultados */}
       <div className="flex items-center justify-between text-xs text-ink-soft">
         <p>
@@ -148,13 +98,10 @@ export default function GiftListSection({
         {searchQuery ? (
           <button
             type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("todos");
-            }}
+            onClick={() => setSearchQuery("")}
             className="text-serenity-deep hover:underline cursor-pointer"
           >
-            Limpar filtros
+            Limpar busca
           </button>
         ) : null}
       </div>
@@ -172,14 +119,11 @@ export default function GiftListSection({
           <span className="text-5xl">🔎</span>
           <h3 className="font-display text-2xl text-ink">Nenhum presente encontrado</h3>
           <p className="text-sm text-ink-soft max-w-md mx-auto">
-            Não encontramos nenhum item com o termo &ldquo;{searchQuery}&rdquo;. Tente buscar por outra palavra-chave ou escolha outra categoria.
+            Não encontramos nenhum item com o termo &ldquo;{searchQuery}&rdquo;. Tente buscar por outra palavra-chave.
           </p>
           <button
             type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("todos");
-            }}
+            onClick={() => setSearchQuery("")}
             className="rounded-full bg-ink px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-cream hover:bg-serenity-deep"
           >
             Ver todos os presentes
@@ -204,7 +148,7 @@ export default function GiftListSection({
         </div>
       ) : filteredGifts.length > 24 ? (
         <div className="pt-8 text-center text-xs uppercase tracking-widest text-ink-soft font-medium">
-          🎉 Você viu todos os {filteredGifts.length} presentes desta categoria!
+          🎉 Você viu todos os {filteredGifts.length} presentes da lista!
         </div>
       ) : null}
     </div>

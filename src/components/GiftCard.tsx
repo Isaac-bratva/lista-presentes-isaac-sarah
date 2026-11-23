@@ -13,6 +13,7 @@ export default function GiftCard({
 }) {
   const soldOut = gift.isTaken && !gift.isReserved;
   const reserved = gift.isReserved;
+  const externalUrl = (gift.externalUrl ?? "").trim();
 
   return (
     <article
@@ -46,6 +47,7 @@ export default function GiftCard({
                 description: gift.description,
                 amountCents: gift.amountCents,
                 imageUrl: gift.imageUrl,
+                externalUrl: gift.externalUrl ?? "",
                 emoji: gift.emoji,
                 category: gift.category,
                 memeBadge: gift.memeBadge,
@@ -60,6 +62,15 @@ export default function GiftCard({
               <span className="rounded-full border border-ink/15 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-ink-soft">
                 Em reserva
               </span>
+            ) : externalUrl ? (
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-ink px-4 py-2 text-xs font-bold uppercase tracking-wider text-cream transition-all hover:bg-serenity-deep hover:shadow-sm"
+              >
+                Presentear ↗
+              </a>
             ) : (
               <Link
                 href={`/presente/${gift.slug}`}

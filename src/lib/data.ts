@@ -28,6 +28,12 @@ export type ListStats = {
 let seedPromise: Promise<void> | null = null;
 
 async function runSeed(): Promise<void> {
+  await db.execute(
+    sql`alter table "gifts" add column if not exists "external_url" text not null default ''`,
+  );
+  await db.execute(
+    sql`alter table "settings" add column if not exists "whatsapp_number" text not null default ''`,
+  );
   await db.insert(settings).values(DEFAULT_SETTINGS).onConflictDoNothing();
   const [countRes] = await db.select({ count: sql<number>`count(*)::int` }).from(gifts);
   const total = countRes?.count ?? 0;

@@ -3,7 +3,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import WeddingBadge from "@/components/WeddingBadge";
 import { getContributionById, getSettings } from "@/lib/data";
-import { formatBRL, formatDate } from "@/lib/utils";
+import { buildWhatsAppUrl, formatBRL, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +20,22 @@ export default async function ThankYouPage({
     : null;
 
   const isCard = m === "credit_card" || contribution?.paymentMethod === "credit_card";
+  const waUrl =
+    isCard && contribution
+      ? buildWhatsAppUrl(
+          settings.whatsappNumber,
+          [
+            "Olá Isaac e Sarah! 💙",
+            `Escolhi o presente: *${contribution.giftTitle}*`,
+            `Valor: *${formatBRL(contribution.amountCents)}*`,
+            "Gostaria de pagar com *Cartão de Crédito* — podem me enviar o link de pagamento?",
+            contribution.guestName ? `Meu nome: ${contribution.guestName}` : "",
+            contribution.message ? `Recado: "${contribution.message}"` : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        )
+      : null;
 
   return (
     <div className="min-h-screen">
@@ -96,7 +112,22 @@ export default async function ThankYouPage({
                   </div>
                 ) : null}
 
-                {isCard && settings.creditCardUrl && settings.creditCardUrl.trim().length > 0 ? (
+                {isCard && waUrl ? (
+                  <div className="mt-6 rounded-2xl bg-paper-blue/60 border border-ink/15 p-4">
+                    <p className="text-xs text-ink-soft mb-2">
+                      Caso ainda não tenha enviado a mensagem no WhatsApp para receber o link do cartão:
+                    </p>
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 hover:underline"
+                    >
+                      <span>Abrir WhatsApp dos noivos 💬</span>
+                      <span>↗</span>
+                    </a>
+                  </div>
+                ) : isCard && settings.creditCardUrl && settings.creditCardUrl.trim().length > 0 ? (
                   <div className="mt-6 rounded-2xl bg-paper-blue/60 border border-ink/15 p-4">
                     <p className="text-xs text-ink-soft mb-2">
                       Caso ainda não tenha concluído a transação do cartão online:
@@ -124,16 +155,13 @@ export default async function ThankYouPage({
                     {contribution.status === "confirmed"
                       ? "Presente confirmado pelos noivos"
                       : contribution.status === "declared"
-                      ? "Avisamos os noivos para conferir o pagamento"
+                      ? isCard
+                        ? "Aguardando link do cartão no WhatsApp"
+                        : "Avisamos os noivos para conferir o pagamento"
                       : isCard
                       ? "Cartão de crédito registrado"
                       : "Aguardando confirmação do PIX"}
                   </span>
-                  {contribution.isPublic ? (
-                    <span className="rounded-full bg-cream-deep border border-ink/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
-                      Recado visível no mural
-                    </span>
-                  ) : null}
                 </div>
               </div>
 
@@ -149,12 +177,6 @@ export default async function ThankYouPage({
               className="rounded-full bg-ink px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-cream transition-all hover:-translate-y-0.5 hover:bg-serenity-deep"
             >
               Ver mais presentes
-            </Link>
-            <Link
-              href="/recados"
-              className="rounded-full border border-ink/20 bg-paper/70 px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-ink transition-all hover:-translate-y-0.5 hover:border-ink/40"
-            >
-              Mural de recados
             </Link>
           </div>
         </div>

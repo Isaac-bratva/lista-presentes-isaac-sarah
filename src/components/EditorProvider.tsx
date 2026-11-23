@@ -18,6 +18,7 @@ export type EditableGift = {
   description: string;
   amountCents: number;
   imageUrl: string | null;
+  externalUrl?: string;
   emoji: string | null;
   category?: string;
   memeBadge?: string;
@@ -65,8 +66,15 @@ export default function EditorProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enable: true }),
         });
-        if (!cancelled && response.ok) {
+        if (cancelled) return;
+        if (response.ok) {
           setEnabled(true);
+          setOpen(true);
+        } else {
+          setEnabled(false);
+          setHint(
+            "Para editar, entre primeiro em /admin com a senha dos noivos e depois abra este link de novo com ?editar.",
+          );
           setOpen(true);
         }
         return;
@@ -89,8 +97,10 @@ export default function EditorProvider({ children }: { children: ReactNode }) {
       const key = event.key.toLowerCase();
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === "e") {
         event.preventDefault();
-        if (!enabled && !wantsEditor) {
-          setHint("Para editar, cole ?editar no final do link e aperte Enter.");
+        if (!enabled) {
+          setHint(
+            "Para editar, entre em /admin com a senha dos noivos e depois abra o site com ?editar no final do link.",
+          );
           setOpen(true);
           return;
         }
@@ -102,12 +112,12 @@ export default function EditorProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [enabled, wantsEditor]);
 
-  const value = useMemo(() => ({ enabled: enabled || wantsEditor, openGift }), [enabled, wantsEditor, openGift]);
+  const value = useMemo(() => ({ enabled, openGift }), [enabled, openGift]);
 
   return (
     <EditorContext.Provider value={value}>
       {children}
-      {(enabled || wantsEditor) && (
+      {enabled && (
         <div className="bg-ink px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-cream">
           Modo edição ligado · clique em “Editar” no presente ou aperte Ctrl+Shift+E
         </div>
@@ -115,7 +125,7 @@ export default function EditorProvider({ children }: { children: ReactNode }) {
       {open ? (
         <EditorPanel
           gift={gift}
-          locked={!enabled && !wantsEditor}
+          locked={!enabled}
           hint={hint}
           onClose={() => setOpen(false)}
           onSaved={() => router.refresh()}
@@ -144,6 +154,7 @@ function EditorPanel({
     gift ? (gift.amountCents / 100).toFixed(2).replace(".", ",") : "",
   );
   const [imageUrl, setImageUrl] = useState(gift?.imageUrl ?? "");
+  const [externalUrl, setExternalUrl] = useState(gift?.externalUrl ?? "");
   const [status, setStatus] = useState<string | null>(hint);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -153,6 +164,7 @@ function EditorPanel({
     setDescription(gift?.description ?? "");
     setAmount(gift ? (gift.amountCents / 100).toFixed(2).replace(".", ",") : "");
     setImageUrl(gift?.imageUrl ?? "");
+    setExternalUrl(gift?.externalUrl ?? "");
     setStatus(hint);
   }, [gift, hint]);
 
@@ -178,6 +190,7 @@ function EditorPanel({
           description,
           amountCents: parseBRLToCents(amount) ?? gift.amountCents,
           imageUrl: imageUrl.trim() || null,
+          externalUrl: externalUrl.trim(),
         }),
       });
       const data = (await response.json()) as { error?: string };
@@ -244,6 +257,10 @@ function EditorPanel({
             <label className="block space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft">Valor (R$)</span>
               <input value={amount} onChange={(event) => setAmount(event.target.value)} className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm" />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft">Link da loja (opcional)</span>
+              <input value={externalUrl} onChange={(event) => setExternalUrl(event.target.value)} placeholder="https://produto.mercadolivre.com.br/..." className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm" />
             </label>
             <label className="block space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft">Foto</span>

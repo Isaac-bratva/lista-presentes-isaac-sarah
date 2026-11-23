@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { EDITOR_COOKIE, editorToken, isEditor } from "@/lib/auth";
+import { EDITOR_COOKIE, editorToken, isAdmin, isEditor } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +30,14 @@ export async function POST(request: Request) {
   if (!enable) {
     store.delete(EDITOR_COOKIE);
     return Response.json({ editorMode: false });
+  }
+
+  // Só quem já entrou na área dos noivos (/admin) pode ligar o modo editor.
+  if (!(await isAdmin())) {
+    return Response.json(
+      { editorMode: false, error: "Entre primeiro em /admin com a senha dos noivos." },
+      { status: 401 },
+    );
   }
 
   store.set(EDITOR_COOKIE, editorToken(), cookieOptions(request));

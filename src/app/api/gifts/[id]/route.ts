@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { gifts } from "@/db/schema";
 import { canEditGifts, isAdmin } from "@/lib/auth";
-import { clampText } from "@/lib/utils";
+import { clampText, normalizeExternalUrl } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function PATCH(request: Request, { params }: Params) {
   if (!(await canEditGifts())) {
     return Response.json(
-      { error: "Abra o site com ?editar no final do link para liberar a edição." },
+      { error: "Sem permissão. Entre em /admin com a senha dos noivos e tente de novo." },
       { status: 401 },
     );
   }
@@ -50,6 +50,11 @@ export async function PATCH(request: Request, { params }: Params) {
   }
   if (body.imageUrl !== undefined) {
     patch.imageUrl = body.imageUrl ? clampText(String(body.imageUrl), 600) : null;
+  }
+  if (body.externalUrl !== undefined) {
+    patch.externalUrl = normalizeExternalUrl(
+      typeof body.externalUrl === "string" ? body.externalUrl : "",
+    );
   }
   if (body.emoji !== undefined) {
     patch.emoji = body.emoji ? clampText(String(body.emoji), 8) : null;

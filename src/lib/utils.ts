@@ -41,3 +41,28 @@ export function formatDate(date: Date | string | null | undefined): string {
 export function clampText(text: string, max: number): string {
   return (text ?? "").slice(0, max);
 }
+
+export function normalizeExternalUrl(raw: string | null | undefined): string {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed.slice(0, 800);
+  return `https://${trimmed}`.slice(0, 800);
+}
+
+export function formatWhatsAppDigits(raw: string | null | undefined): string {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length === 10 || digits.length === 11) {
+    return `55${digits}`;
+  }
+  return digits;
+}
+
+export function buildWhatsAppUrl(
+  rawPhone: string | null | undefined,
+  text: string,
+): string | null {
+  const digits = formatWhatsAppDigits(rawPhone);
+  if (digits.length < 10) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}

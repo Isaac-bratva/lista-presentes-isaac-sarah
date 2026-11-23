@@ -1,19 +1,25 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import WeddingBadge from "@/components/WeddingBadge";
+import { isAdmin } from "@/lib/auth";
 import { getPublicMessages, getSettings } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mural de recados · Isaac & Sarah",
-  description: "Recados e mensagens de carinho que os convidados deixaram junto com os presentes.",
+  title: "Recados · Isaac & Sarah",
+  description: "Recados deixados pelos convidados para os noivos.",
 };
 
 export default async function MessagesPage() {
+  if (!(await isAdmin())) {
+    redirect("/");
+  }
+
   const [settings, messages] = await Promise.all([getSettings(), getPublicMessages(120)]);
 
   return (

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CopyButton from "@/components/CopyButton";
-import { formatBRL } from "@/lib/utils";
+import { buildWhatsAppUrl, formatBRL } from "@/lib/utils";
 import { pixKeyLabel } from "@/lib/pix";
 
 type GiftInfo = {
@@ -38,16 +38,17 @@ export default function GiftCheckout({
   gift,
   pix,
   creditCardUrl = "",
+  whatsappNumber = "",
 }: {
   gift: GiftInfo;
   pix: PixInfo;
   creditCardUrl?: string;
+  whatsappNumber?: string;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<"form" | "payment">("form");
   const [guestName, setGuestName] = useState("");
   const [message, setMessage] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
   const [customAmount, setCustomAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("pix");
   const [loading, setLoading] = useState(false);
@@ -65,6 +66,25 @@ export default function GiftCheckout({
   const amountValid =
     !gift.isFlexible || (Number.parseFloat(customAmount.replace(",", ".")) || 0) >= 10;
 
+  const finalAmountCents = contribution?.amountCents ?? amountCents;
+
+  const whatsappText = useMemo(() => {
+    const lines = [
+      "Olá Isaac e Sarah! 💙",
+      `Escolhi o presente: *${gift.title}*`,
+      `Valor: *${formatBRL(finalAmountCents)}*`,
+      "Gostaria de pagar com *Cartão de Crédito* — podem me enviar o link de pagamento?",
+    ];
+    if (guestName.trim()) lines.push(`Meu nome: ${guestName.trim()}`);
+    if (message.trim()) lines.push(`Recado: "${message.trim()}"`);
+    return lines.join("\n");
+  }, [finalAmountCents, gift.title, guestName, message]);
+
+  const waUrl = useMemo(
+    () => buildWhatsAppUrl(whatsappNumber, whatsappText),
+    [whatsappNumber, whatsappText],
+  );
+
   async function handleProceedToPayment() {
     setLoading(true);
     setError(null);
@@ -76,7 +96,7 @@ export default function GiftCheckout({
           giftId: gift.id,
           guestName: guestName.trim(),
           message: message.trim(),
-          isPublic,
+          isPublic: false,
           amountCents,
           paymentMethod: selectedMethod,
         }),
@@ -95,6 +115,9 @@ export default function GiftCheckout({
       });
       setStep("payment");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (selectedMethod === "credit_card" && waUrl) {
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado. Tente de novo.");
     } finally {
@@ -229,22 +252,10 @@ export default function GiftCheckout({
                 }`}
               >
                 <span className="font-bold text-sm tracking-wide">Cartão de Crédito</span>
-                <span className="text-[11px] opacity-80">Online</span>
+                <span className="text-[11px] opacity-80">Via WhatsApp</span>
               </button>
             </div>
           </div>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-ink/10 bg-cream/40 p-4">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(event) => setIsPublic(event.target.checked)}
-              className="mt-1 h-4 w-4 accent-ink"
-            />
-            <span className="text-sm text-ink-soft leading-relaxed">
-              Quero que meu recado apareça no mural público de recados dos noivos.
-            </span>
-          </label>
 
           {error ? (
             <p className="rounded-2xl border border-terracotta/40 bg-cream-deep p-4 text-sm text-ink">
@@ -363,34 +374,61 @@ export default function GiftCheckout({
                     💳
                   </span>
                   <div>
-                    <h4 className="font-display text-xl text-ink">Pagamento com Cartão de Crédito</h4>
-                    <p className="text-xs text-ink-soft">Transação online segura para os noivos</p>
+                    <h4 className="font-display text-xl text-ink">Cartão de Crédito via WhatsApp</h4>
+                    <p className="text-xs text-ink-soft">
+                      Fale com Isaac &amp; Sarah para receber seu link de pagamento no cartão
+                    </p>
                   </div>
                 </div>
 
-                {creditCardUrl && creditCardUrl.trim().length > 0 ? (
-                  <div className="space-y-3 pt-2">
-                    <p className="text-sm leading-relaxed text-ink-soft">
-                      Clique no botão abaixo para abrir a página de pagamento seguro com cartão de crédito:
-                    </p>
-                    <a
-                      href={creditCardUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-center gap-2 w-full rounded-full bg-ink px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-cream transition-all hover:bg-serenity-deep"
-                    >
-                      <span>Abrir pagamento com Cartão de Crédito</span>
-                      <span aria-hidden="true">↗</span>
-                    </a>
-                  </div>
+                <div className="rounded-2xl border border-ink/15 bg-paper p-4 space-y-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-soft block">
+                    Mensagem pronta com seu presente
+                  </span>
+                  <p className="whitespace-pre-line text-xs leading-relaxed text-ink">
+                    {whatsappText}
+                  </p>
+                </div>
+
+                {waUrl ? (
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      if (contribution) {
+                        fetch(`/api/contributions/${contribution.id}/confirm`, {
+                          method: "POST",
+                        }).catch(() => {});
+                      }
+                    }}
+                    className="flex items-center justify-center gap-2 w-full rounded-full bg-emerald-700 px-6 py-4 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-sm transition-all hover:bg-emerald-800"
+                  >
+                    <span>Abrir WhatsApp dos noivos 💬</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                ) : creditCardUrl && creditCardUrl.trim().length > 0 ? (
+                  <a
+                    href={creditCardUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-2 w-full rounded-full bg-ink px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-cream transition-all hover:bg-serenity-deep"
+                  >
+                    <span>Abrir pagamento com Cartão de Crédito</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
                 ) : (
-                  <div className="rounded-2xl border border-ink/15 bg-paper p-4 space-y-2 text-sm text-ink-soft">
-                    <p className="font-medium text-ink">
-                      Link de pagamento online com cartão de crédito:
+                  <div className="space-y-3">
+                    <p className="text-xs leading-relaxed text-ink-soft">
+                      Copie a mensagem acima e envie no WhatsApp dos noivos para receber o link de pagamento no cartão.
                     </p>
-                    <p className="text-xs leading-relaxed">
-                      Seu presente já está registrado no sistema com o seu recado! Os noivos disponibilizam link de pagamento direto no cartão. Você pode confirmar abaixo para notificá-los, ou se preferir, utilizar a opção PIX acima que é imediata.
-                    </p>
+                    <CopyButton
+                      value={whatsappText}
+                      label="Copiar mensagem"
+                      copiedLabel="Mensagem copiada!"
+                      tone="outline"
+                      className="w-full"
+                    />
                   </div>
                 )}
               </div>
@@ -401,7 +439,7 @@ export default function GiftCheckout({
                 disabled={confirming}
                 className="w-full rounded-full bg-ink px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-cream transition-all hover:-translate-y-0.5 hover:bg-serenity-deep disabled:opacity-60 cursor-pointer"
               >
-                {confirming ? "Confirmando..." : "Confirmar presente com Cartão de Crédito ♥"}
+                {confirming ? "Confirmando..." : "Já enviei no WhatsApp ♥"}
               </button>
             </div>
           )}

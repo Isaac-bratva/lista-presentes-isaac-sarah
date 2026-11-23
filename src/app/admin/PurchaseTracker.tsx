@@ -34,7 +34,10 @@ export default function PurchaseTracker({
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("attention");
   const [query, setQuery] = useState("");
+  const [ruleQuery, setRuleQuery] = useState("");
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [savingLinkId, setSavingLinkId] = useState<number | null>(null);
+  const [linkDrafts, setLinkDrafts] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const timer = window.setInterval(() => router.refresh(), 20000);
@@ -98,6 +101,35 @@ export default function PurchaseTracker({
         : "Várias pessoas podem comprar este item",
     );
     router.refresh();
+  }
+
+  async function saveExternalLink(gift: AdminGift) {
+    const draft = (linkDrafts[gift.id] ?? gift.externalUrl ?? "").trim();
+    setSavingLinkId(gift.id);
+    try {
+      const response = await fetch(`/api/gifts/${gift.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ externalUrl: draft }),
+      });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Não foi possível salvar o link");
+      }
+      const data = (await response.json()) as { gift?: { externalUrl?: string } };
+      const savedUrl = data.gift?.externalUrl ?? draft;
+      setLinkDrafts((prev) => ({ ...prev, [gift.id]: savedUrl }));
+      onNotify(
+        savedUrl
+          ? `Link da loja salvo para "${gift.title}"`
+          : `Link da loja removido de "${gift.title}"`,
+      );
+      router.refresh();
+    } catch (error) {
+      onNotify(error instanceof Error ? error.message : "Erro ao salvar link");
+    } finally {
+      setSavingLinkId(null);
+    }
   }
 
   function downloadCsv() {
@@ -250,31 +282,112 @@ export default function PurchaseTracker({
       </div>
 
       <div className="rounded-[28px] border border-ink/10 bg-paper p-5">
-        <h3 className="font-display text-2xl text-ink">Regra de cada presente</h3>
-        <p className="mt-1 text-sm text-ink-soft">
-          Troque entre “só 1 pessoa” e “várias pessoas” quando quiser. A lista pública respeita isso na hora.
-        </p>
-        <div className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="font-display text-2xl text-ink">Regra e link de cada presente</h3>
+            <p className="mt-1 text-sm text-ink-soft">
+              Cole na coluna ao lado o link do produto (ex.: Mercado Livre) para abrir direto a loja quando o convidado clicar em “Presentear”, ou troque entre “só 1 pessoa” e “várias pessoas”.
+            </p>
+          </div>
+          <input
+            value={ruleQuery}
+            onChange={(event) => setRuleQuery(event.target.value)}
+            placeholder="Filtrar presente..."
+            className="w-full sm:w-64 rounded-full border border-ink/15 bg-cream/40 px-4 py-2 text-xs text-ink outline-none focus:border-ink focus:bg-paper"
+          />
+        </div>
+
+        <div className="mt-4 hidden md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_auto] md:gap-3 px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-ink-soft">
+          <span>Presente</span>
+          <span>Link externo da loja (Mercado Livre, etc.)</span>
+          <span className="text-right">Regra</span>
+        </div>
+
+        <div className="mt-2 max-h-[34rem] space-y-2 overflow-y-auto">
           {gifts
             .filter((gift) => gift.isActive || gift.confirmedCount > 0)
-            .map((gift) => (
-              <div key={gift.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-cream/60 px-3 py-2">
-                <div>
-                  <p className="text-sm text-ink">{gift.title}</p>
-                  <p className="text-xs text-ink-soft">
-                    {gift.confirmedCount} recebido(s)
-                    {gift.isActive ? "" : " · fora da lista"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toggleMode(gift)}
-                  className="rounded-full border border-ink/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink"
+            .filter((gift) =>
+              ruleQuery.trim()
+                ? gift.title.toLowerCase().includes(ruleQuery.toLowerCase().trim())
+                : true,
+            )
+            .map((gift) => {
+              const currentDraft = linkDrafts[gift.id] ?? gift.externalUrl ?? "";
+              const isDirty = currentDraft.trim() !== (gift.externalUrl ?? "").trim();
+              const isSaving = savingLinkId === gift.id;
+              return (
+                <div
+                  key={gift.id}
+                  className="grid gap-3 rounded-2xl bg-cream/60 px-3 py-2.5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)_auto] md:items-center"
                 >
-                  {gift.allowMultiple ? "Várias pessoas" : "Só 1 pessoa"}
-                </button>
-              </div>
-            ))}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-ink truncate" title={gift.title}>
+                      {gift.title}
+                    </p>
+                    <p className="text-xs text-ink-soft">
+                      {gift.confirmedCount} recebido(s)
+                      {gift.isActive ? "" : " · fora da lista"}
+                      {gift.externalUrl ? " · abre link externo" : ""}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="url"
+                      value={currentDraft}
+                      onChange={(event) =>
+                        setLinkDrafts((prev) => ({
+                          ...prev,
+                          [gift.id]: event.target.value,
+                        }))
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          saveExternalLink(gift);
+                        }
+                      }}
+                      placeholder="https://produto.mercadolivre.com.br/..."
+                      aria-label={`Link externo para ${gift.title}`}
+                      className="min-w-0 flex-1 rounded-xl border border-ink/15 bg-paper px-3 py-1.5 text-xs text-ink outline-none transition focus:border-ink"
+                    />
+                    <button
+                      type="button"
+                      disabled={isSaving || (!isDirty && !currentDraft)}
+                      onClick={() => saveExternalLink(gift)}
+                      className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer ${
+                        isDirty
+                          ? "bg-ink text-cream hover:bg-serenity-deep"
+                          : "border border-ink/20 bg-paper text-ink-soft hover:border-ink/40 hover:text-ink"
+                      } disabled:opacity-50`}
+                    >
+                      {isSaving ? "..." : "Salvar"}
+                    </button>
+                    {gift.externalUrl ? (
+                      <a
+                        href={gift.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Testar link da loja"
+                        className="shrink-0 rounded-full border border-ink/20 bg-paper px-2.5 py-1.5 text-[10px] font-bold text-ink hover:border-ink"
+                      >
+                        ↗
+                      </a>
+                    ) : null}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => toggleMode(gift)}
+                      className="rounded-full border border-ink/20 bg-paper px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink hover:border-ink/40 cursor-pointer whitespace-nowrap"
+                    >
+                      {gift.allowMultiple ? "Várias pessoas" : "Só 1 pessoa"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </section>

@@ -15,6 +15,7 @@ export type AdminGift = {
   description: string;
   amountCents: number;
   imageUrl: string | null;
+  externalUrl: string;
   emoji: string | null;
   category: string;
   memeBadge: string;
@@ -53,6 +54,7 @@ export type AdminSettings = {
   pixCity: string;
   pixNote: string;
   creditCardUrl: string;
+  whatsappNumber: string;
   footerNote: string;
   goalCents: number;
 };
@@ -113,6 +115,7 @@ export default function AdminDashboard({
     description: "",
     amount: "",
     imageUrl: "",
+    externalUrl: "",
     emoji: "",
     sortOrder: "500",
     category: "memes",
@@ -213,6 +216,7 @@ export default function AdminDashboard({
         description: giftForm.description,
         amountCents,
         imageUrl: giftForm.imageUrl.trim() || null,
+        externalUrl: giftForm.externalUrl.trim(),
         emoji: giftForm.emoji.trim() || null,
         category: giftForm.category,
         memeBadge: giftForm.memeBadge,
@@ -246,6 +250,7 @@ export default function AdminDashboard({
       description: gift.description,
       amount: (gift.amountCents / 100).toFixed(2).replace(".", ","),
       imageUrl: gift.imageUrl ?? "",
+      externalUrl: gift.externalUrl ?? "",
       emoji: gift.emoji ?? "",
       sortOrder: String(gift.sortOrder),
       category: gift.category || "memes",
@@ -518,6 +523,24 @@ export default function AdminDashboard({
                   </p>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className={labelClass} htmlFor="gift-external-url">
+                    Link do produto na loja (opcional — ex.: Mercado Livre)
+                  </label>
+                  <input
+                    id="gift-external-url"
+                    value={giftForm.externalUrl}
+                    onChange={(event) =>
+                      setGiftForm({ ...giftForm, externalUrl: event.target.value })
+                    }
+                    placeholder="https://produto.mercadolivre.com.br/..."
+                    className={field}
+                  />
+                  <p className="text-[10px] text-ink-soft/80">
+                    Se preenchido, quando o convidado clicar em “Presentear”, esse link da loja abre diretamente.
+                  </p>
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-1.5 sm:col-span-1">
                     <label className={labelClass} htmlFor="gift-emoji">
@@ -753,15 +776,6 @@ export default function AdminDashboard({
                   )}
                   <button
                     type="button"
-                    onClick={() =>
-                      handleContribution(item.id, { isPublic: !item.isPublic })
-                    }
-                    className="rounded-full border border-ink/20 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink transition-colors hover:border-terracotta hover:text-terracotta"
-                  >
-                    {item.isPublic ? "Tirar do mural" : "Publicar no mural"}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => handleDeleteContribution(item.id)}
                     className="rounded-full border border-terracotta/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta transition-colors hover:bg-terracotta hover:text-cream"
                   >
@@ -986,24 +1000,26 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-ink/20 bg-paper-blue/50 p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink">
-                    Cartão de crédito online
-                  </p>
-                  <p className="mt-1 text-xs text-ink-soft">
-                    Quando tiver o link de pagamento ou link da maquininha/gateway (ex: InfinitePay, Mercado Pago, Stripe, etc.), cole aqui:
-                  </p>
-                  <div className="mt-3 space-y-1.5">
-                    <label className={labelClass} htmlFor="creditCardUrl">
-                      Link para pagamento com cartão de crédito (opcional)
+                <div className="rounded-[28px] border border-ink/20 bg-paper-blue/50 p-5 space-y-4">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink">
+                      Cartão de crédito via WhatsApp dos noivos
+                    </p>
+                    <p className="mt-1 text-xs text-ink-soft">
+                      Quando o convidado escolher pagar com Cartão de Crédito, ele será direcionado para o seu WhatsApp já com a mensagem do presente escolhido para vocês gerarem e enviarem o link de pagamento.
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className={labelClass} htmlFor="whatsappNumber">
+                      WhatsApp dos noivos (com DDD)
                     </label>
                     <input
-                      id="creditCardUrl"
-                      value={settingsForm.creditCardUrl}
+                      id="whatsappNumber"
+                      value={settingsForm.whatsappNumber}
                       onChange={(event) =>
-                        setSettingsForm({ ...settingsForm, creditCardUrl: event.target.value })
+                        setSettingsForm({ ...settingsForm, whatsappNumber: event.target.value })
                       }
-                      placeholder="https://link-de-pagamento.com/..."
+                      placeholder="(11) 99999-9999"
                       className={field}
                     />
                   </div>

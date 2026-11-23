@@ -85,13 +85,33 @@ export default async function GiftPage({ params }: PageProps) {
                 Como funciona para presentear {settings.coupleTitle.replace(/\s*&\s*/, " e ")}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                Você pode optar por PIX instantâneo ou Cartão de Crédito online. Ao concluir, seu nome e seu recado são guardados pelos noivos com muito carinho.
+                Você pode optar por PIX instantâneo ou Cartão de Crédito (direcionamento para o WhatsApp dos noivos para envio do link de pagamento). Ao concluir, seu nome e seu recado ficam guardados com os noivos.
               </p>
             </div>
           </div>
 
           <div className="animate-rise delay-1 lg:sticky lg:top-28 lg:self-start">
-            {gift.isTaken ? (
+            {gift.externalUrl ? (
+              <div className="rounded-[32px] border border-ink/15 bg-paper p-8 text-center space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-serenity-deep font-semibold">
+                  Compra direta na loja
+                </p>
+                <h2 className="font-display text-3xl text-ink">
+                  Este presente é adquirido diretamente no site da loja
+                </h2>
+                <p className="text-sm leading-relaxed text-ink-soft">
+                  Clique abaixo para abrir o produto escolhido na loja e finalizar sua compra por lá.
+                </p>
+                <a
+                  href={gift.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-full bg-ink px-7 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-cream transition-colors hover:bg-serenity-deep"
+                >
+                  Ir para a loja comprar ↗
+                </a>
+              </div>
+            ) : gift.isTaken ? (
               <div className="rounded-[32px] border border-ink/15 bg-paper p-8 text-center">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-ink-soft">
                   {gift.isReserved ? "Alguém está finalizando" : "Presente indisponível"}
@@ -132,6 +152,7 @@ export default async function GiftPage({ params }: PageProps) {
                 note: settings.pixNote,
               }}
               creditCardUrl={settings.creditCardUrl ?? ""}
+              whatsappNumber={settings.whatsappNumber ?? ""}
             />
             )}
           </div>
@@ -146,6 +167,7 @@ export default async function GiftPage({ params }: PageProps) {
           description: gift.description,
           amountCents: gift.amountCents,
           imageUrl: gift.imageUrl,
+          externalUrl: gift.externalUrl ?? "",
           emoji: gift.emoji,
           category: gift.category,
           memeBadge: gift.memeBadge,

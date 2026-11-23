@@ -14,6 +14,7 @@ export const gifts = pgTable("gifts", {
   description: text("description").notNull().default(""),
   amountCents: integer("amount_cents").notNull().default(0),
   imageUrl: text("image_url"),
+  externalUrl: text("external_url").notNull().default(""),
   emoji: text("emoji"),
   category: text("category").notNull().default("geral"),
   memeBadge: text("meme_badge").notNull().default("MEME"),
@@ -75,6 +76,7 @@ export const settings = pgTable("settings", {
     "Depois do PIX, a gente recebe a notificação e o presente fica registrado com o seu nome e recado.",
   ),
   creditCardUrl: text("credit_card_url").notNull().default(""),
+  whatsappNumber: text("whatsapp_number").notNull().default(""),
   goalCents: integer("goal_cents").notNull().default(3000000),
   footerNote: text("footer_note").notNull().default(
     "Isaac & Sarah · 21 de março de 2027 · Espaço Ravena Garden",

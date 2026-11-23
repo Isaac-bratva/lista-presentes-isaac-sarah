@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { gifts } from "@/db/schema";
 import { isAdmin } from "@/lib/auth";
 import { getGifts } from "@/lib/data";
-import { clampText, slugify } from "@/lib/utils";
+import { clampText, normalizeExternalUrl, slugify } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,7 @@ export type GiftPayload = {
   description?: string;
   amountCents?: number;
   imageUrl?: string | null;
+  externalUrl?: string | null;
   emoji?: string | null;
   category?: string;
   memeBadge?: string;
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       description: clampText(body.description ?? "", 480),
       amountCents,
       imageUrl: body.imageUrl ? clampText(body.imageUrl, 600) : null,
+      externalUrl: normalizeExternalUrl(body.externalUrl),
       emoji: body.emoji ? clampText(body.emoji, 8) : null,
       category: body.category ? clampText(body.category, 40) : "memes",
       memeBadge: body.memeBadge ? clampText(body.memeBadge, 80) : "MEME ✦",

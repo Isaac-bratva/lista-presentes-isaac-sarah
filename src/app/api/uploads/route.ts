@@ -14,7 +14,7 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
 export async function POST(request: Request) {
   if (!(await canEditGifts())) {
     return Response.json(
-      { error: "Abra o site com ?editar no final do link antes de enviar a foto." },
+      { error: "Sem permissão. Entre em /admin com a senha dos noivos e tente de novo." },
       { status: 401 },
     );
   }

@@ -28,6 +28,7 @@ export default async function AdminPage() {
     description: gift.description,
     amountCents: gift.amountCents,
     imageUrl: gift.imageUrl,
+    externalUrl: gift.externalUrl || "",
     emoji: gift.emoji,
     category: gift.category || "memes",
     memeBadge: gift.memeBadge || "MEME ✦",
@@ -66,6 +67,7 @@ export default async function AdminPage() {
     pixCity: settings.pixCity,
     pixNote: settings.pixNote,
     creditCardUrl: settings.creditCardUrl ?? "",
+    whatsappNumber: settings.whatsappNumber ?? "",
     footerNote: settings.footerNote,
     goalCents: settings.goalCents,
   };

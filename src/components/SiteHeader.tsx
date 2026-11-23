@@ -46,9 +46,6 @@ export default function SiteHeader({ settings }: { settings: Settings }) {
           <Link href="/#como-funciona" className="transition-colors hover:text-terracotta">
             Como funciona
           </Link>
-          <Link href="/recados" className="transition-colors hover:text-terracotta">
-            Recados
-          </Link>
         </nav>
 
         <Link

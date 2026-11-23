@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: Omit<Settings, "updatedAt"> = {
   pixNote:
     "Depois do PIX, a gente recebe a notificação e o presente fica registrado com o seu nome e recado.",
   creditCardUrl: "",
+  whatsappNumber: "",
   goalCents: 3_000_000,
   footerNote:
     "Isaac & Sarah · 21 de março de 2027 · Espaço Ravena Garden",

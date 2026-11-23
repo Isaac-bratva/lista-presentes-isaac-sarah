@@ -21,6 +21,7 @@ const TEXT_FIELDS = [
   "pixCity",
   "pixNote",
   "creditCardUrl",
+  "whatsappNumber",
   "footerNote",
 ] as const;
 
@@ -38,6 +39,7 @@ const LIMITS: Record<string, number> = {
   pixCity: 40,
   pixNote: 400,
   creditCardUrl: 600,
+  whatsappNumber: 40,
   footerNote: 240,
 };
 
